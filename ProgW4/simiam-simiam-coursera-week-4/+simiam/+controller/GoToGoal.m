@@ -40,9 +40,9 @@ classdef GoToGoal < simiam.controller.Controller
             obj = obj@simiam.controller.Controller('go_to_goal');
             
             % initialize memory banks
-            obj.Kp = 4;
+            obj.Kp = 5;
             obj.Ki = 0.01;
-            obj.Kd = 0.1;
+            obj.Kd = 0.01;
                         
             % errors
             obj.E_k = 0;
@@ -71,15 +71,13 @@ classdef GoToGoal < simiam.controller.Controller
             % Compute the v,w that will get you to the goal
             v = inputs.v;
             
-            %% START CODE BLOCK %%
-            
             % 1. Calculate the heading (angle) to the goal.
             
             % distance between goal and robot in x-direction
-            u_x = x_g - x;     
+            u_x = x_g-x;     
                 
             % distance between goal and robot in y-direction
-            u_y = y_g - y;
+            u_y = y_g-y;
                 
             % angle from robot to goal. Hint: use ATAN2, u_x, u_y here.
             theta_g = atan2(u_y,u_x);
@@ -88,34 +86,30 @@ classdef GoToGoal < simiam.controller.Controller
             
             % error between the goal angle and robot's angle
             % Hint: Use ATAN2 to make sure this stays in [-pi,pi].
-            e_k = theta_g - theta ;
-            e_k=atan2(sin(e_k), cos(e_k)) ; 
+            e_k = theta_g-theta;
+            e_k = atan2(sin(e_k),cos(e_k));
+            
                 
             % 3. Calculate PID for the steering angle 
             
             % error for the proportional term
-            e_P = e_k ;
+            e_P = e_k;
             
             % error for the integral term. Hint: Approximate the integral using
             % the accumulated error, obj.E_k, and the error for
             % this time step, e_k.
-            e_I = dt * (obj.E_k + e_k);
+            e_I = obj.E_k + e_k*dt;
                      
             % error for the derivative term. Hint: Approximate the derivative
             % using the previous error, obj.e_k_1, and the
             % error for this time step, e_k.
-            e_D = (e_k - obj.e_k_1)/ dt;    
-           
-            
-            %% END CODE BLOCK %%
+            e_D = (e_k-obj.e_k_1)/dt;    
                   
             w = obj.Kp*e_P + obj.Ki*e_I + obj.Kd*e_D;
             
             % 4. Save errors for next time step
             obj.E_k = e_I;
             obj.e_k_1 = e_k;
-            
-             fprintf('theta (theta,theta g,w): (%0.3g,%0.3g,%0.3g)\n', theta, theta_g, w);
             
             % plot
             obj.p.plot_2d_ref(dt, atan2(sin(theta),cos(theta)), theta_g, 'r');
